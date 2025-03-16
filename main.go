@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
@@ -38,12 +37,6 @@ type ExchangeRateResponse struct {
 var config Config
 
 func main() {
-	// Load environment variables from .env file
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Warning: .env file not found, using environment variables")
-	}
-
 	// Get configuration from environment variables
 	config = Config{
 		SendGridAPIKey: getEnv("SENDGRID_API_KEY", ""),
@@ -127,10 +120,11 @@ func getSampathBankUSDRate() (string, error) {
 
 func sendEmail(recipient string, exchangeRate string) error {
 	from := mail.NewEmail("Exchange Rate Notifier", config.FromEmail)
-	subject := fmt.Sprintf("Sampath Bank USD Exchange Rate: %s", exchangeRate)
+	date := time.Now().Format("02/01")
+	subject := fmt.Sprintf("Sampath Bank USD Exchange Rate: %s on %s", exchangeRate, date)
 	to := mail.NewEmail("Recipient", recipient)
-	plainTextContent := fmt.Sprintf("Sampath Bank USD exchange rate is %s", exchangeRate)
-	htmlContent := fmt.Sprintf("<strong>Sampath Bank USD exchange rate is %s</strong>", exchangeRate)
+	plainTextContent := fmt.Sprintf("Sampath Bank USD exchange rate is %s on %s.", exchangeRate, date)
+	htmlContent := fmt.Sprintf("<strong>Sampath Bank USD exchange rate is %s on %s</strong>", exchangeRate, date)
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
 	client := sendgrid.NewSendClient(config.SendGridAPIKey)
 	_, err := client.Send(message)
